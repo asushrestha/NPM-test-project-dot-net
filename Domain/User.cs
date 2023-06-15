@@ -2,16 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 
 namespace Domain
 {
-    public class User
+    public class User: IdentityUser
     {
-         public Guid Id { get; set; }
         public string FullName { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }= DateTime.UtcNow.AddMonths(0);
 
         public string Contact { get; set; }
-        public string Email { get; set; }
     }
 }

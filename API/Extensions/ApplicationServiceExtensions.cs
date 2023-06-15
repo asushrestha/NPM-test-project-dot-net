@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Nurses;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
@@ -21,13 +23,17 @@ namespace API.Extensions
                 opt.UseSqlite(config.GetConnectionString("DefaultConnection"));
             });
             services.AddMediatR(typeof(List.Handler));
-            services.AddCors(opt=>{
+            services.AddCors(opt =>
+            {
 
-                opt.AddPolicy("CorsPolicy",policy=>{
+                opt.AddPolicy("CorsPolicy", policy =>
+                {
                     policy.AllowAnyMethod().AllowAnyHeader().WithOrigins("*");
                 });
             });
-            return  services;
+            services.AddFluentValidationAutoValidation();
+            services.AddValidatorsFromAssemblyContaining<Create>();
+            return services;
         }
     }
 }

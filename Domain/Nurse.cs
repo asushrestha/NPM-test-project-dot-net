@@ -8,7 +8,6 @@ namespace Domain
 
         public string Contact { get; set; }
         public string Email { get; set; }
-        public Boolean IsRoundingManger;
-        public string ImageBasePath; 
+        public bool IsRoundingManager {get;set;} = false;
     }
 }

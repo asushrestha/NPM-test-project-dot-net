@@ -2,39 +2,32 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Domain;
-using FluentValidation;
 using MediatR;
 using Persistence;
 
 namespace Application.Nurses
 {
-    public class Create
+    public class RemoveNurseFromRoundingManager
     {
         public class Command : IRequest
         {
-            public Nurse Nurse { get; set; }
-        }
-        public class CommandValidator : AbstractValidator<Command>
-        {
-            public CommandValidator()
-            {
-                RuleFor(x => x.Nurse).SetValidator(new NurseValidator());
-            }
+            public Guid Id { get; set; }
 
         }
         public class Handler : IRequestHandler<Command>
         {
-            private readonly DataContext _context;
-
+            public readonly DataContext _context;
             public Handler(DataContext context)
             {
                 _context = context;
             }
-
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                _context.Nurses.Add(request.Nurse);
+                var nurse = await _context.Nurses.FindAsync(request.Id);
+                if(!nurse.IsRoundingManager){
+                    throw new Exception("Nurse is not a rounding manager!");
+                }
+                nurse.IsRoundingManager = false;
                 await _context.SaveChangesAsync();
                 return Unit.Value;
             }

@@ -4,9 +4,15 @@ using Microsoft.AspNetCore.Mvc;
 using Domain;
 using MediatR;
 using Application.Nurses;
+using Application.Core;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace API.Controllers
 {
+
+
+
 
     public class NursesController : BaseApiController
     {
@@ -18,44 +24,91 @@ namespace API.Controllers
         }
 
         [HttpGet("nurse")]
-        public async Task<ActionResult<List<Nurse>>> GetNurses()
+        public async Task<ActionResult<Result<PagedList<Nurse>>>> GetNurses([FromQuery] PagingParams param)
         {
+            // var user = HttpContext.User;
 
-            return await _mediator.Send(new List.Query());
+            // // Get the user's identifier
+            // var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // // Get other claims
+            // var email = user.FindFirst(ClaimTypes.Email)?.Value;
+            //todo further mappping for create and update apis
+            return HandlePaginatedResult(await _mediator.Send(new List.Query { Params = param }));
         }
         [HttpPost("add-nurse")]
         public async Task<IActionResult> AddNewNurse([FromBody] Nurse nurse)
         {
-            return Ok(await _mediator.Send(new Create.Command { Nurse = nurse }));
+            try{
+            await _mediator.Send(new Create.Command { Nurse = nurse });
+            return Ok(new { Message = "Nurse is added successfully!" });
+            }
+            catch(Exception ex){
+                return BadRequest(new { Error = "Failed to add nurse:" + ex.Message });
+            }
+
         }
         [HttpPut("edit-nurse/{id}")]
         public async Task<IActionResult> EditNurseById(Guid id, Nurse nurse)
         {
             nurse.Id = id;
-            return Ok(await _mediator.Send(new Edit.Command { Nurse = nurse }));
+            try
+            {
+                await _mediator.Send(new Edit.Command { Nurse = nurse });
+                return Ok(new { Message = "Nurse is updated successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = "Failed to edit nurse:" + ex.Message });
+            }
 
         }
 
         [HttpDelete("delete-nurse/{id}")]
-        public async Task<ActionResult<Nurse>> DeleteNurseById(Guid id)
+        public async Task<IActionResult> DeleteNurseById(Guid id)
         {
-            return Ok(await _mediator.Send(new Delete.Command { Id = id }));
+            try
+            {
+                await _mediator.Send(new Delete.Command { Id = id });
+                return Ok(new { Message = "Nurse is successfully deleted!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = "Failed to delete nurse : " + ex.Message });
+
+            }
 
         }
         [HttpGet("get-nurse-by-id/{id}")]
-        public async Task<ActionResult<Nurse>> GetNurseById(Guid id)
+        public async Task<ActionResult<Result<Nurse>>> GetNurseById(Guid id)
         {
             return await _mediator.Send(new Details.Query { Id = id });
         }
         [HttpPut("mark-rounding-manager/{id}")]
         public async Task<ActionResult<Nurse>> MarkNurseAsRoundingManger(Guid id)
         {
-            return Ok();
+            try
+            {
+                await _mediator.Send(new MarkNurseAsRoundingOfficer.Command { Id = id });
+                return Ok(new { Message = "Nurse is succssfully made a rounding manager" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = "Failed to mark nurse as rounding manager: " + ex.Message });
+            }
         }
         [HttpPut("remove-rounding-manager/{id}")]
         public async Task<ActionResult<Nurse>> RemoveNurseFromRoundingManager(Guid id)
         {
-            return Ok();
+            try
+            {
+                await _mediator.Send(new RemoveNurseFromRoundingManager.Command { Id = id });
+                return Ok(new { Message = "Nurse successfully removed from rounding manager." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = "Failed to remove nurse from rounding manager: " + ex.Message });
+            }
         }
 
     }
