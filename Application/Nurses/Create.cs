@@ -34,6 +34,10 @@ namespace Application.Nurses
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
+                var nurse = _context.Nurses.Any(x => x.Email ==request.Nurse.Email);
+                if(nurse){
+                    throw new Exception("Nurse with this email already exists!");
+                }
                 _context.Nurses.Add(request.Nurse);
                 await _context.SaveChangesAsync();
                 return Unit.Value;
