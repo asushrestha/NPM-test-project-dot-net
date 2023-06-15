@@ -9,5 +9,6 @@ namespace Persistence
         {
         }
         public DbSet<Nurse> Nurses { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }
